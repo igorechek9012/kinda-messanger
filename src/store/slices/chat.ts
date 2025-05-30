@@ -56,8 +56,8 @@ const chatSlice = createSlice({
             .addCase(createChat.pending, (state) => {
                 state.loading = true
             })
-            .addCase(createChat.fulfilled, (state, action: PayloadAction<Chat>) => {
-                state.items.push(action.payload)
+            .addCase(createChat.fulfilled, (state) => {
+                // state.items.push(action.payload)
                 state.loading = false
             })
             .addCase(createChat.rejected, (state) => {

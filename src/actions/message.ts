@@ -1,9 +1,6 @@
 import { createAsyncThunk } from '@reduxjs/toolkit'
 import type { Message } from '~/types'
-import { BACKEND_URL } from '~/lib'
-import axios from 'axios'
 import { socket } from '~/services/socket'
-import { fetchMessages } from '~/actions/chat'
 import type { RootState } from '~/store'
 
 // interface FetchMessagesParams {
@@ -30,17 +27,7 @@ export const sendMessage = createAsyncThunk(
                 sender: currentUser,
             }
 
-            const url = `${BACKEND_URL}/api/messages`
-            const response = await axios.post(url, newMessage)
-
-            if (response.status === 200) {
-                socket.emit('sendMessage', response.data as Message)
-                dispatch(fetchMessages(currentChatId))
-
-                return response.data as Message
-            } else {
-                throw new Error('Ошибка отправки сообщения')
-            }
+            socket.emit('sendMessage', newMessage)
         } catch (error: unknown) {
             return rejectWithValue(error)
         }

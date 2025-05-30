@@ -48,6 +48,26 @@ const getLastMessageFromChat = (messages, chatId) => {
     return sortedMessages[0] ?? null
 }
 
+const createNewMessage = (partialMessage) => {
+    const newMessage = {
+        id: crypto.randomUUID(),
+        timestamp: new Date().getTime(),
+        ...partialMessage,
+    }
+    messages.push(newMessage)
+    return newMessage
+}
+
+const createNewChat = (partialChat) => {
+    const { users } = partialChat
+    const newChat = {
+        users,
+        id: crypto.randomUUID()
+    }
+    chats.push(newChat)
+    return newChat
+}
+
 app.post('/api/login', (req, res) => {
     const { username } = req.body
     const token = `${username}-token`
@@ -72,12 +92,7 @@ app.get('/api/chats', (req, res) => {
 })
 
 app.post('/api/chats', (req, res) => {
-    const { users } = req.body
-    const newChat = {
-        users,
-        id: crypto.randomUUID()
-    }
-    chats.push(newChat)
+    const newChat = createNewChat(req.body)
     res.json(newChat)
 })
 
@@ -91,12 +106,7 @@ app.get('/api/messages/:chatId', (req, res) => {
 
 app.post('/api/messages', (req, res) => {
     const message = req.body
-    const newMessage = {
-        id: crypto.randomUUID(),
-        timestamp: new Date().getTime(),
-        ...message,
-    }
-    messages.push(newMessage)
+    const newMessage = createNewMessage(message)
     res.json(newMessage)
 })
 
@@ -124,18 +134,31 @@ io.on('connection', (socket) => {
         const currentUser = onlineUsers[socket.id]
         const currentChat = chats.find((chat) => chat.id === chatId)
 
-        if (currentUser && currentChat) {
-            const emitToUsers = currentChat.users.filter((user) => user !== currentUser)
-            const emitToSockets = emitToUsers.map((username) => Object.keys(onlineUsers).find((socketId) => onlineUsers[socketId] === username))
+        const newMessage = createNewMessage(msg)
+
+        if (currentUser && currentChat && newMessage) {
+            // const emitToUsers = currentChat.users.filter((user) => user !== currentUser)
+            const emitToSockets = currentChat.users.map((username) => Object.keys(onlineUsers).find((socketId) => onlineUsers[socketId] === username))
 
             emitToSockets.forEach(socket => {
-                if (socket) io.to(socket).emit('newMessage', msg)
+                if (socket) io.to(socket).emit('newMessage', newMessage)
             })
+        } else {
+            socket.emit('error', 'Failed to send message')
         }
     })
 
-    socket.on('chatCreate', () => {
-        io.emit('chatCreate')
+    socket.on('createChat', (chat) => {
+        const newChat = createNewChat(chat)
+        if (newChat) {
+            const emitToSockets = newChat.users.map((username) => Object.keys(onlineUsers).find((socketId) => onlineUsers[socketId] === username))
+
+            emitToSockets.forEach(socket => {
+                if (socket) io.to(socket).emit('newChatCreated', newChat)
+            })
+        } else {
+            socket.emit('error', 'Failed to create chat')
+        }
     })
 
     socket.on('typing', (username) => {

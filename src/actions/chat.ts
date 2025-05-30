@@ -2,12 +2,11 @@ import { createAsyncThunk } from '@reduxjs/toolkit'
 import { BACKEND_URL } from '~/lib'
 import type { Chat, Message } from '~/types'
 import axios from 'axios'
+import { socket } from '~/services/socket'
 
 export const createChat = createAsyncThunk('chat/create', async (chat: Partial<Chat>, thunkAPI) => {
     try {
-        const url = `${BACKEND_URL}/api/chats`
-        const response = await axios.post(url, chat)
-        return response.data as Chat
+        socket.emit('createChat', chat)
     } catch (error: unknown) {
         return thunkAPI.rejectWithValue(error)
     }

@@ -41,6 +41,33 @@ export const WebSocketProvider: FC<PropsWithChildren> = ({ children }) => {
         [chats, currentChatId, dispatch],
     )
 
+    const handleErrorOnSocket = useCallback(
+        (errorMessage: string) => {
+            dispatch(showNotification({ text: errorMessage, type: NotificationType.error }))
+        },
+        [dispatch],
+    )
+
+    const handleNewChatCreated = useCallback(() => {
+        dispatch(fetchChats())
+    }, [dispatch])
+
+    useEffect(() => {
+        socket.on('error', handleErrorOnSocket)
+
+        return () => {
+            socket.off('error', handleErrorOnSocket)
+        }
+    }, [handleErrorOnSocket])
+
+    useEffect(() => {
+        socket.on('newChatCreated', handleNewChatCreated)
+
+        return () => {
+            socket.off('newChatCreated', handleNewChatCreated)
+        }
+    }, [handleNewChatCreated])
+
     useEffect(() => {
         socket.connect()
         socket.emit('join', { username: currentUser })
