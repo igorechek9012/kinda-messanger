@@ -1,9 +1,9 @@
 import { type FC, type PropsWithChildren, useCallback, useEffect } from 'react'
 import { socket } from '~/services/socket'
 import { useAppDispatch, useAppSelector } from '~/hooks'
-import { fetchChats, fetchMessages, fetchUsers } from '~/actions'
+import { fetchChats, fetchUsers } from '~/actions'
 import { type Message, NotificationType } from '~/types'
-import { setChatIsUnread, showNotification } from '~/store'
+import { addMessageToChat, setChatIsUnread, showNotification } from '~/store'
 
 export const WebSocketProvider: FC<PropsWithChildren> = ({ children }) => {
     const dispatch = useAppDispatch()
@@ -18,7 +18,7 @@ export const WebSocketProvider: FC<PropsWithChildren> = ({ children }) => {
             const chatExist = [...chats].some((chat) => chat.id === message.chatId)
 
             if (chatExist) {
-                dispatch(fetchMessages(message.chatId))
+                dispatch(addMessageToChat(message))
             } else {
                 dispatch(fetchChats())
             }

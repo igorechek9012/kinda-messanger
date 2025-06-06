@@ -34,8 +34,7 @@ export const ChatPage: FC = () => {
         if (chat) {
             dispatch(setCurrentChat(chat.id))
         } else {
-            const createdChat = await dispatch(createChat({ users: [String(userId), currentUser] })).unwrap()
-            if (createdChat) dispatch(setCurrentChat(createdChat.id))
+            dispatch(createChat({ users: [String(userId), currentUser] }))
         }
     }
 

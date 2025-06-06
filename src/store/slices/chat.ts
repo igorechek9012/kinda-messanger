@@ -1,5 +1,5 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
-import type { Chat, ChatState } from '~/types'
+import type { Chat, ChatState, Message } from '~/types'
 import { createChat, fetchChats, fetchMessages } from '~/actions'
 
 const initialState: ChatState = {
@@ -28,16 +28,16 @@ const chatSlice = createSlice({
         readChat(state, action: PayloadAction<string | number>) {
             state.unreadChats = state.unreadChats.filter((chatId) => chatId !== action.payload)
         },
-        // addMessageToChat(state, action: PayloadAction<Message>) {
-        //     const chat = state.chats.find((c) => c.id === action.payload.chatId)
-        //     if (chat) {
-        //         if (chat.messages) {
-        //             chat.messages.push(action.payload)
-        //         } else {
-        //             chat.messages = [action.payload]
-        //         }
-        //     }
-        // },
+        addMessageToChat(state, action: PayloadAction<Message>) {
+            const chat = state.items.find((c) => c.id === action.payload.chatId)
+            if (chat) {
+                if (chat.messages) {
+                    chat.messages.push(action.payload)
+                } else {
+                    chat.messages = [action.payload]
+                }
+            }
+        },
     },
     extraReducers(builder) {
         builder
@@ -76,5 +76,5 @@ const chatSlice = createSlice({
     },
 })
 
-export const { setCurrentChat, setChatIsUnread, readChat } = chatSlice.actions
+export const { setCurrentChat, setChatIsUnread, addMessageToChat } = chatSlice.actions
 export default chatSlice.reducer
